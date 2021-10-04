@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                Int                @id @default(autoincrement())
+  refreshToken      String?
+  status            UserStatus         @default(ACTIVED)
+  login             String             @unique
+  password          String
+  referrerId        Int                @default(1)
+  profile           Profile?
+  inviteCodes       InviteCode[]
+  deposit           Deposit[]
+  isProfileComplete Boolean            @default(false)
+  verifications     UserVerification[]
+  role              UserRole           @default(USER)
+  registrationIp    String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+model UserVerification {
+  id         Int              @id @default(autoincrement())
+  user       User             @relation(fields: [userId], references: [id])
+  userId     Int
+  isVerified Boolean          @default(false)
+  type       VerificationType
+  counter    Int              @default(0)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+model Profile {
+  id        Int          @id @default(autoincrement())
+  user      User         @relation(fields: [userId], references: [id])
+  userId    Int          @unique
+  firstName String?
+  lastName  String?
+  email     String?
+  avatar    String?
+  language  UserLanguage @default(RU)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Deposit {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
+  currency  Currency @default(UAH)
+  balance   Int      @default(0) // In Penny
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InviteCode {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  code      Int      @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserStatus {
+  ACTIVED
+  FROZEN
+  BLOCKED
+}
+
+enum UserRole {
+  USER
+  EDITOR
+  ADMIN
+}
+
+enum VerificationType {
+  EMAIL_CONFIRM
+  ACTION_CONFIRM
+  PASSWORD_RESET
+}
+
+enum UserLanguage {
+  RU
+  UA
+  EN
+}
+
+enum Currency {
+  RUB
+  UAH
+  USD
+}
