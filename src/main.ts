@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core'
+import { ValidationPipe } from '@nestjs/common'
 import * as morgan from 'morgan'
 import * as cookieParser from 'cookie-parser'
 import { ApplicationModule } from './app.module'
 import { configService } from './config/config.service'
-import { logger, stream } from './utils/Logger/logger.service'
+import { logger } from './utils/Logger/logger.service'
 import { swaggerService } from './utils/Swagger/swagger.service'
 
 const start = async () => {
@@ -13,6 +14,7 @@ const start = async () => {
     const PORT = configService.server.PORT
     const app = await NestFactory.create(ApplicationModule, appOptions)
 
+    app.useGlobalPipes(new ValidationPipe())
     app.setGlobalPrefix(configService.server.API_PREFIX)
     app.use(morgan('tiny'))
     app.use(cookieParser())
